@@ -1,0 +1,36 @@
+Layer,Component/File,Responsibilities,Interfaces (REST/Socket),Key Data Structures,Notes
+Backend API,src/app.ts,Compose middleware routes Swagger health,HTTP: /api/* /api-docs /health,Express app instance; middleware chain,CORS JSON body parser logger error/404
+Backend Bootstrap,src/server.ts,Load env start HTTP and Socket.IO graceful shutdown,HTTP listener; SocketService.initialize(server),HTTP server; env PORT,Runs Socket.IO on same port; handles SIGTERM/SIGINT
+Routing,routers/index.router.ts,Mount domain routers,HTTP prefix /api/users /api/socket /api/socket/rooms /api/chat,Express Router,Central mount point
+Users Controller,controllers/user.controller.ts,CRUD handlers validation passthrough to service,HTTP GET/POST/PUT/DELETE /api/users,User shape {id,name,email,createdAt,updatedAt},Uses ResponseUtil and Logger
+Users Service,services/user.service.ts,In-memory CRUD for users,Internal only,In-memory array IUser,Not persistent; demo only
+Chat REST,routers/chat.router.ts,Fetch conversations/messages; persist message; feedback submit/list,HTTP: GET /chat/messages /chat/conversations /chat/conversations/:id; POST /chat/messages; POST/GET /chat/feedback (+:id),StoredChatMessage {id,conversationId,username?,message,timestamp,socketId?,file?}; ChatFeedback {id,conversationId,rating,description?,timestamp},Broadcast feedback via SocketService.broadcastFeedback
+Chat DB Util,database/chatDb.util.ts,JSON storage for conversations; append/read,File db.json,ChatDatabaseSchema {conversations: Record<conversationId, {conversationId,messages[]}>},Ensures file exists; safe parse
+Feedback DB Util,database/feedbackDb.util.ts,JSON storage for feedback; append/read/filter,File feedback.json,FeedbackDatabaseSchema {feedback: ChatFeedback[]},Ensures file exists; safe parse
+Socket Stats REST,routers/socket.router.ts,Return socket stats,HTTP GET /socket/stats,Stats payload {totalConnections,activeRooms[],roomCount,roomDetails},Reads from SocketService getters
+Socket Rooms REST,routers/socketRooms.router.ts,List active rooms with counts,HTTP GET /socket/rooms,{rooms:[{conversationId,roomSize}],totalConnections,roomCount},Derived from SocketService maps
+Socket Service (server),services/socket.service.ts,"Init Socket.IO; manage rooms; handle join/leave, send-message, typing start/stop, feedback broadcast, disconnect cleanup","Socket events: connection; join-conversation; leave-conversation; send-message; typing-start; typing-stop; user-typing; user-joined; user-left; feedback-submitted; error; ping/pong","Maps: rooms Map<conversationId,Set<Socket>>; typingTimeouts Map<socketId,Timeout>; ChatMessage {id,conversationId,message,username?,timestamp:Date,socketId,file?}; StoredChatMessage (persisted)",Auto-join via handshake query.conversationId; persists messages via appendChatMessage fire-and-forget
+Middleware,requestLogger.middleware.ts,Log method/path/status/duration,Express middleware,Request/Response,Use before routes
+Middleware,error.middleware.ts,Global error handler,Express error middleware,Error response via ResponseUtil,Must be last
+Middleware,notFound.middleware.ts,Return 404 for unmatched routes,Express middleware,ResponseUtil.notFound,Placed after routes
+Utils,response.util.ts,Standardized success/error/notFound/badRequest,Http responses helpers,Uniform {success,message,data},Used across controllers/routers
+Utils,logger.util.ts,Logger abstraction,Console-based,Logger methods info/debug/error/warn,Used across backend
+Models,models/user.model.ts,User interface definition,Type only,IUser {id,name,email,createdAt,updatedAt},Shared by service
+Config,config/swagger.config.ts,Swagger spec for routes,Served at /api-docs,OpenAPI spec object,Docs for chat/socket/user
+Frontend Bootstrap,src/main.tsx,Mount React app,Entrypoint,React root,Imports global styles
+Frontend Shell,src/App.tsx,Define routes/layout wrappers,Routers to pages,React components,Uses Layout
+Layout,components/Layout.tsx,Common layout shell header/sidebar,Rendered around pages,Props children,Styles via CSS
+Chat Page,pages/Chat.tsx,Host chat dashboard view,Uses ChatDashboard,Props,Combines chat list/window
+Dashboard Page,pages/Dashboard.tsx,Dashboard view likely embeds chat stats,Uses ChatDashboard,React component
+Feedback Page,pages/Feedback.tsx,Feedback submission page,Uses FeedbackModal/hook,useFeedback hook,Form post via apiService
+Chat Dashboard,components/ChatDashboard.tsx,Orchestrate chat list + window + visitor panel,Uses ChatList ChatWindow VisitorInfoPanel,State: selected conversation,user context,Pass handlers
+Chat List,components/ChatList.tsx,Display conversations list and selection,Uses apiService for conversations,Conversations data structure,Select conversation triggers ChatWindow load
+Chat Window,components/ChatWindow.tsx,"Manage Socket.IO lifecycle; load history via REST; send text/file; typing indicators; feedback modal; drag/drop files; system messages","Socket events: new-message,user-typing,user-joined,user-left,joined-conversation,left-conversation,feedback-submitted; emits send-message,typing-start/stop,join/leave; REST: apiService.getConversationMessages","ChatMessage {id,type,text,sender,timestamp,username,socketId,file?,linkPreview?}; FileAttachment; typingUsers Map<socketId,username>; sentMessageIds Set; selectedFiles[]","Converts StoredChatMessage→ChatMessage; dedup by sent ids; handles image/file previews; compresses images when needed"
+Conversation View,components/ConversationView.tsx,Render message list with avatars/previews,Props messages,onSend,onFileDrop,ChatMessage render,Styles CSS
+Link Preview,components/LinkPreview.tsx,Render URL preview card,Input link url,Preview data,Used when message has link
+File Preview Item,components/FilePreviewItem.tsx,Render file attachment preview/card,Props file attachment,Uses file icon helper
+Visitor Info Panel,components/VisitorInfoPanel.tsx,Show visitor/user metadata,Props visitor info,Read-only panel
+Feedback Modal,components/FeedbackModal.tsx,Collect rating/comment submit via hook/api,Calls useFeedback -> apiService.submitFeedback,Form state rating/description,Opens from ChatWindow end-chat flow
+Hook,useFeedback.ts,Manage feedback form state + submission,Calls apiService.submitFeedback,State: rating,description,loading,error,Returns submit handler
+Socket Client Service,services/socket.service.ts (frontend),Socket.IO client wrapper connect/join/send/typing/listeners,"Events emitted: join-conversation,leave-conversation,send-message,typing-start,typing-stop; Listens: new-message,user-typing,user-joined,user-left,joined-conversation,left-conversation,feedback-submitted,error","ConversationId tracking; reconnect attempts; isIntentionallyDisconnected flag",Auto-connect with query.conversationId; exposes on/off helpers
+REST Client Service,services/api.service.ts,Fetch rooms/conversations/feedback,HTTP endpoints /api/socket/rooms /chat/messages /chat/conversations /chat/feedback,
