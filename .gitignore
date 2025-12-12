@@ -4,16 +4,20 @@ frontend/node_modules/
 mobileapp/node_modules/
 **/node_modules/
 
-# Git directories
-backend/.git/
-frontend/.git/
-mobileapp/.git/
+# Git directories - ignore .git folders recursively inside backend, frontend, mobileapp
+backend/**/.git/
+backend/**/.git
+frontend/**/.git/
+frontend/**/.git
+mobileapp/**/.git/
+mobileapp/**/.git
 **/.git/
+**/.git
 
-# Gitignore files
-backend/.gitignore
-frontend/.gitignore
-mobileapp/.gitignore
+# Gitignore files - ignore .gitignore files recursively inside backend, frontend, mobileapp
+backend/**/.gitignore
+frontend/**/.gitignore
+mobileapp/**/.gitignore
 
 # Environment files
 backend/.env
