@@ -1,0 +1,66 @@
+# Node modules
+backend/node_modules/
+frontend/node_modules/
+mobileapp/node_modules/
+**/node_modules/
+
+# Git directories
+backend/.git/
+frontend/.git/
+mobileapp/.git/
+**/.git/
+
+# Gitignore files
+backend/.gitignore
+frontend/.gitignore
+mobileapp/.gitignore
+
+# Environment files
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+mobileapp/.env
+mobileapp/.env.*
+**/.env
+**/.env.*
+
+# Build outputs
+backend/dist/
+backend/build/
+frontend/dist/
+frontend/build/
+mobileapp/dist/
+mobileapp/build/
+**/dist/
+**/build/
+
+# Logs
+**/*.log
+backend/*.log
+frontend/*.log
+mobileapp/*.log
+
+# OS files
+.DS_Store
+**/.DS_Store
+backend/.DS_Store
+frontend/.DS_Store
+mobileapp/.DS_Store
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Coverage
+**/coverage/
+**/.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+**/*.tmp
+**/*.temp
